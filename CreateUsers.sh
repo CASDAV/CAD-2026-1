@@ -53,7 +53,7 @@ while IFS=: read -r usuario uid; do
     # Asignar contraseña si se pasa -p
     if $asignar_password; then
         echo "Asignando contraseña para $usuario"
-        passwd "$usuario"
+        passwd "$usuario" < /dev/tty
     fi
 
 done < "$archivo"
