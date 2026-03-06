@@ -42,36 +42,18 @@ if [ ! -f "$SECURITY_FILE" ]; then
     exit 1
 fi
 
-# Hacer backup antes de modificar
+# Crear backup
 cp "$SECURITY_FILE" "${SECURITY_FILE}.bak"
-
 echo "Backup creado en ${SECURITY_FILE}.bak"
 
-# Procesar archivo
-while IFS= read -r linea; do
-    # Quitar espacios iniciales para comparar
-    linea_trim=$(echo "$linea" | sed 's/^[[:space:]]*//')
-    if [[ "$linea_trim" == "use security:host_based" ]] || \
-       [[ "$linea_trim" == "#use security:host_based" ]]; then
-        echo "use security:host_based"
-    else
-        if [[ -z "$linea_trim" ]]; then
-            echo ""
-        else
-            if [[ "$linea_trim" == \#* ]]; then
-                echo "$linea"
-            else
-                echo "#$linea"
-            fi
-        fi
-    fi
-    
-done < "$SECURITY_FILE" > "${SECURITY_FILE}.tmp"
+# 1. Comentar todas las líneas use security
+sed -i 's/^[[:space:]]*use[[:space:]]\+security:/#&/g' "$SECURITY_FILE"
 
-# Reemplazar archivo original
-mv "${SECURITY_FILE}.tmp" "$SECURITY_FILE"
+# 2. Descomentar específicamente host_based
+sed -i 's/^#[[:space:]]*use[[:space:]]\+security:host_based/use security:host_based/' "$SECURITY_FILE"
 
-echo "Configuración actualizada correctamente."
+echo "Configuración de seguridad actualizada correctamente."
+
 
 condor_store_cred query -f /var/lib/condor/condor_credential
 
